@@ -102,5 +102,5 @@ postgresql:
 volumePermissions:
   enabled: true
 postgresqlImage:
-  repository: quaredevil/postgresql-repmgr-plpython3-pgcron
-  tag: 13-v0.1.17
+  repository: quaredevil/kong-oidc
+  tag: v0.0.1
