@@ -1,0 +1,106 @@
+global:
+  pgpool:
+    adminUsername: admin
+    existingSecret: application-postgresql-ha-pgpool
+  postgresql:
+    existingSecret: application-postgresql-ha-postgresql
+    repmgrUsername: admin
+    username: postgres
+persistence:
+  size: 50Gi
+  storageClass: aws-ebs-database-application
+pgpool:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node.cluster.local/purpose
+            operator: In
+            values:
+            - application
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: node.cluster.local/database
+            operator: In
+            values:
+            - application-database-pgpool
+        topologyKey: kubernetes.io/hostname
+  childLifeTime: 300
+  childMaxConnections: 50
+  clientIdleLimit: 0
+  configuration: |-
+    num_init_children=64
+    health_check_timeout=30
+    health_check_period=10
+    health_check_max_retries=10
+    failover_on_backend_error='off'
+    health_check_retry_delay=5
+  customLivenessProbe:
+    tcpSocket:
+      port: postgresql
+  customUsersSecret: application-postgresql-ha-pgpool-users-connection
+  initdbScriptsCM: application-postgresql-ha-pool-initial-script
+  labels:
+    node.cluster.local/database: application-database-pgpool
+  livenessProbe:
+    initialDelaySeconds: 60
+    tcpSocket:
+      port: postgresql
+    timeoutSeconds: 15
+  logConnections: false
+  maxPool: 20
+  readinessProbe:
+    initialDelaySeconds: 60
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  startupProbe:
+    initialDelaySeconds: 20
+postgresql:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node.cluster.local/purpose
+            operator: In
+            values:
+            - database
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: node.cluster.local/database
+            operator: In
+            values:
+            - application-database-postgresql
+        topologyKey: kubernetes.io/hostname
+  audit:
+    logConnections: false
+  extendedConfCM: application-postgresql-ha-postgresql-extendedconf
+  initdbScriptsCM: application-postgresql-ha-postgresql-initial-script
+  labels:
+    node.cluster.local/database: application-database-postgresql
+  livenessProbe:
+    initialDelaySeconds: 60
+  readinessProbe:
+    initialDelaySeconds: 30
+    timeoutSeconds: 15
+  replicaCount: 2
+  repmgrReconnectAttempts: 3
+  repmgrReconnectInterval: 5
+  startupProbe:
+    initialDelaySeconds: 30
+volumePermissions:
+  enabled: true
+postgresqlImage:
+  repository: $CHANGE_IMAGE_NAME
+  tag: $CHANGE_IMAGE_TAG
