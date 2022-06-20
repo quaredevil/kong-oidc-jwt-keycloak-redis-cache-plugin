@@ -17,6 +17,12 @@ ENV LOCAL_PATH="/usr/local/kong"
 RUN apk update && apk add git unzip luarocks
 
 
+######################[BUG]######################  
+#https://github.com/Kong/kong/issues/8259
+RUN apk add --no-cache curl git gcc musl-dev && luarocks install luaossl OPENSSL_DIR=/usr/local/kong CRYPTO_DIR=/usr/local/kong
+
+
+
 
 ######################[jwt-keycloak]######################  
 ENV JWT_PLUGIN_VERSION=1.1.0-1
