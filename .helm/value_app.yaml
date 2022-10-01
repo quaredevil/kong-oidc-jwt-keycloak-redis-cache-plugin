@@ -103,4 +103,4 @@ volumePermissions:
   enabled: true
 postgresqlImage:
   repository: quaredevil/kong-oidc
-  tag: v0.0.236
+  tag: v0.0.237
